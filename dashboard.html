@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.Name }}'s Health Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+
+<div class="container">
+    <nav>
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <path d="M3 12h18" stroke="rgba(59, 130, 246, 0.4)"/>
+            </svg>
+            DanKan<span class="text-gradient"> Automate</span>
+        </div>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <div style="text-align: right; line-height: 1.2;">
+                <div style="font-weight: 600;">{{ user.Name }}</div>
+                <div style="font-size: 13px; color: var(--text-muted);">{{ user.Email }} • DOB: {{ user.DOB }} • Blood Group: {{ user.BloodGroup }}</div>
+            </div>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">Logout</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-header">
+        <div>
+            <h1>Personalized <span class="text-gradient">Immunity Timeline</span></h1>
+            <p style="color: var(--text-muted); margin-top: 5px;">We've calculated the optimal dates for your entire vaccine schedule.</p>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+        <div class="stat-card taken">
+            <div class="stat-value val-taken">{{ taken_count }}</div>
+            <div class="stat-label">Vaccines Taken</div>
+        </div>
+        <div class="stat-card due">
+            <div class="stat-value val-due">{{ due_count }}</div>
+            <div class="stat-label">Immediate Action Required</div>
+        </div>
+        <div class="stat-card upcoming">
+            <div class="stat-value val-upcoming">{{ upcoming_count }}</div>
+            <div class="stat-label">Scheduled Future Doses</div>
+        </div>
+    </div>
+
+    <div class="glass-panel" style="padding: 0; overflow: hidden; animation-delay: 0.1s;">
+        <div style="padding: 30px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center;">
+            <h3>Update Immunity Profile</h3>
+            <p style="font-size: 14px; color: var(--text-muted);">Mark recently received vaccines below or book an appointment for due ones.</p>
+        </div>
+        
+        <form action="{{ url_for('update_vaccines') }}" method="POST">
+            <input type="hidden" name="email" value="{{ user.Email }}">
+            
+            <div class="table-container" style="border: none; border-radius: 0;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th width="50">Mark</th>
+                            <th>Vaccine Identity</th>
+                            <th width="150">Optimal Date</th>
+                            <th width="150">Status / Location</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in schedule %}
+                        <tr>
+                            <td>
+                                {% if item.status == 'Upcoming' or item.status == 'Due' %}
+                                <div class="checkbox-card" style="padding: 0; background: transparent; border: none; width: max-content;">
+                                    <input type="checkbox" name="vaccines" value="{{ item.name }}">
+                                </div>
+                                {% elif item.status == 'Booked' %}
+                                <div class="checkbox-card" style="padding: 0; background: transparent; border: none; width: max-content;" title="Check to mark as taken">
+                                    <input type="checkbox" name="vaccines" value="{{ item.name }}">
+                                </div>
+                                {% elif item.status == 'Taken' %}
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight: 500;">
+                                {{ item.name }}
+                                {% if 'Flu' in item.name %}
+                                <br><span style="font-size: 12px; font-weight: 400; color: #94a3b8;">Repeats naturally every October.</span>
+                                {% endif %}
+                            </td>
+                            <td style="font-family: monospace; font-size: 14px;">{{ item.due_date }}</td>
+                            <td>
+                                {% if item.status == 'Taken' %}
+                                    <span class="badge badge-taken">Protected</span>
+                                {% elif item.status == 'Booked' %}
+                                    <span class="badge badge-taken" style="background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3);">Booked</span>
+                                    <div style="font-size: 11px; margin-top: 4px; color: var(--text-muted);">{{ item.location }}</div>
+                                {% elif item.status == 'Due' %}
+                                    <button type="button" class="badge badge-due" style="cursor: pointer; border: none;" onclick="openBookingModal('{{ item.name }}', '{{ user.City }}', '{{ user.State }}')">Book Slot</button>
+                                {% else %}
+                                    <span class="badge badge-upcoming">Upcoming</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div style="padding: 24px 30px; background: rgba(0,0,0,0.1); border-top: 1px solid var(--glass-border); text-align: right;">
+                <button type="submit" class="btn btn-success">Save Profile Updates</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Booking Modal -->
+<div id="bookingModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(5px);">
+    <div class="glass-panel" style="width: 400px; max-width: 90%; animation: floatUp 0.3s ease-out; background: var(--bg-color);">
+        <h3 id="modalVaccineTitle">Book Slot</h3>
+        <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 20px;">Select a clinic near <span id="modalLocationText" style="color: white; font-weight: bold;"></span>.</p>
+        
+        <form action="{{ url_for('book_slot') }}" method="POST">
+            <input type="hidden" name="email" value="{{ user.Email }}">
+            <input type="hidden" name="vaccine_name" id="modalVaccineInput">
+            
+            <div class="form-group">
+                <label class="form-label">Available Clinics</label>
+                <select name="location" id="modalClinicSelect" class="form-control" required style="appearance: none; background-color: rgba(15, 23, 42, 0.6); color: white; cursor: pointer;">
+                    <!-- populated by JS -->
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Appointment Date</label>
+                <select name="date" id="modalDateSelect" class="form-control" required style="appearance: none; background-color: rgba(15, 23, 42, 0.6); color: white; cursor: pointer;">
+                    <!-- populated by JS -->
+                </select>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" onclick="closeBookingModal()">Cancel</button>
+                <button type="submit" class="btn btn-success">Confirm Booking</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openBookingModal(vaccineName, city, state) {
+        document.getElementById('bookingModal').style.display = 'flex';
+        document.getElementById('modalVaccineTitle').innerText = 'Book ' + vaccineName;
+        document.getElementById('modalVaccineInput').value = vaccineName;
+        document.getElementById('modalLocationText').innerText = city + ', ' + state;
+        
+        const selectLoc = document.getElementById('modalClinicSelect');
+        selectLoc.innerHTML = '';
+        
+        let locations = [];
+        const clower = city.toLowerCase();
+        
+        if (clower === 'chennai') {
+            locations = ["Apollo Hospitals, Greams Road", "Kauvery Hospital, Alwarpet", "Fortis Malar, Adyar"];
+        } else if (clower === 'bengaluru' || clower === 'bangalore') {
+            locations = ["Manipal Hospital, HAL", "Aster CMI, Hebbal", "Narayana Health City"];
+        } else if (clower === 'hyderabad') {
+            locations = ["Yashoda Hospitals, Secunderabad", "KIMS Hospitals, Minister Rd", "AIG Hospitals, Gachibowli"];
+        } else if (clower === 'kochi' || clower === 'ernakulam') {
+            locations = ["Aster Medcity", "Amrita Hospital", "Rajagiri Hospital"];
+        } else if (clower === 'coimbatore') {
+            locations = ["Kovai Medical Center (KMCH)", "G. Kuppuswamy Naidu Memorial", "PSG Hospitals"];
+        } else if (clower === 'madurai') {
+            locations = ["Meenakshi Mission Hospital", "Velammal Medical College", "Apollo Specialty Hospitals"];
+        } else {
+            locations = [
+                city + " General Hospital",
+                state + " Medical Center",
+                "Apollo Clinic, " + city,
+                "Care Hospitals, " + city
+            ];
+        }
+        
+        locations.forEach(loc => {
+            let opt = document.createElement('option');
+            opt.value = loc;
+            opt.innerHTML = loc;
+            selectLoc.appendChild(opt);
+        });
+
+        const selectDate = document.getElementById('modalDateSelect');
+        selectDate.innerHTML = '';
+        
+        let today = new Date();
+        for (let i = 1; i <= 3; i++) {
+            let nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + i);
+            
+            let label = nextDate.toDateString();
+            if (i === 1) label = "Tomorrow (" + label + ")";
+            else if (i === 2) label = "Day After (" + label + ")";
+            
+            let opt = document.createElement('option');
+            opt.value = nextDate.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+            opt.innerHTML = label;
+            selectDate.appendChild(opt);
+        }
+    }
+
+    function closeBookingModal() {
+        document.getElementById('bookingModal').style.display = 'none';
+    }
+
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateX(100px)';
+            alert.style.transition = 'all 0.4s';
+            setTimeout(() => alert.remove(), 400);
+        });
+    }, 5000);
+</script>
+</body>
+</html>

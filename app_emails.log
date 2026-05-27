@@ -1,0 +1,18 @@
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "check_and_send_reminders" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:root:Scheduler started. Background tasks are running.
+INFO:werkzeug:[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5001
+INFO:werkzeug:[33mPress CTRL+C to quit[0m
+INFO:werkzeug: * Restarting with stat
+INFO:apscheduler.scheduler:Adding job tentatively -- it will be properly scheduled when the scheduler starts
+INFO:apscheduler.scheduler:Added job "check_and_send_reminders" to job store "default"
+INFO:apscheduler.scheduler:Scheduler started
+INFO:root:Scheduler started. Background tasks are running.
+WARNING:werkzeug: * Debugger is active!
+INFO:werkzeug: * Debugger PIN: 406-496-808
+INFO:werkzeug:127.0.0.1 - - [27/May/2026 10:34:25] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [27/May/2026 10:34:36] "GET / HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [27/May/2026 10:34:36] "GET /static/css/style.css HTTP/1.1" 200 -
+INFO:werkzeug:127.0.0.1 - - [27/May/2026 10:34:37] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -

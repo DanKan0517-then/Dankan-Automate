@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VaccineShield | Register & Login</title>
+    <meta name="description" content="Automated Vaccination Tracking and Scheduling">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .split-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: stretch;
+            min-height: 80vh;
+        }
+        @media (max-width: 900px) {
+            .split-layout { grid-template-columns: 1fr; }
+        }
+        .hero-section {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .hero-section h1 {
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+        .hero-section p {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            line-height: 1.6;
+            max-width: 90%;
+        }
+        .login-card {
+            background: rgba(0,0,0,0.2);
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 30px 0;
+            color: var(--text-muted);
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .divider:not(:empty)::before { margin-right: .25em; }
+        .divider:not(:empty)::after { margin-left: .25em; }
+    </style>
+</head>
+<body>
+
+<div class="flash-messages">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+</div>
+
+<div class="container">
+    <nav>
+        <div class="logo">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                <!-- DNA/Medical cross symbol idea -->
+                <path d="M3 12h18" stroke="rgba(59, 130, 246, 0.4)"/>
+            </svg>
+            DanKan<span class="text-gradient"> Automate</span>
+        </div>
+    </nav>
+
+    <div class="split-layout">
+        <div class="hero-section">
+            <h1>Your health,<br>intelligently <span class="text-gradient">protected.</span></h1>
+            <p>We automatically calculate your required vaccines based on your age and health history, keeping you prepared with automated calendar invites and email reminders.</p>
+            
+            <div class="login-card glass-panel" style="animation-delay: 0.1s;">
+                <h3>Access Dashboard</h3>
+                <p style="font-size: 14px; margin-top: 5px; margin-bottom: 20px;">Already registered? Enter your email to view your schedule.</p>
+                <form action="/" method="POST">
+                    <input type="hidden" name="action" value="login">
+                    <div class="form-group">
+                        <input type="email" name="email" class="form-control" placeholder="your@email.com" required>
+                    </div>
+                    <button type="submit" class="btn w-100" style="width: 100%;">View My Schedule</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="glass-panel" style="animation-delay: 0.2s;">
+            <h2>Register New Member</h2>
+            <br>
+            <form action="/" method="POST">
+                <input type="hidden" name="action" value="register">
+                
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="name" class="form-control" placeholder="John Doe" required>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">Email Address</label>
+                        <input type="email" name="email" class="form-control" placeholder="john@example.com" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Date of Birth</label>
+                        <input type="date" name="dob" class="form-control" required title="Your DOB is used to exactly calculate your vaccination schedule.">
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label class="form-label">State</label>
+                        <select name="state" id="stateSelect" class="form-control" required style="appearance: none; background-color: rgba(15, 23, 42, 0.6); color: white; cursor: pointer;" onchange="populateCities()">
+                            <option value="" disabled selected>Select State...</option>
+                            <option value="Tamil Nadu">Tamil Nadu</option>
+                            <option value="Karnataka">Karnataka</option>
+                            <option value="Andhra Pradesh">Andhra Pradesh</option>
+                            <option value="Telangana">Telangana</option>
+                            <option value="Kerala">Kerala</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">City</label>
+                        <select name="city" id="citySelect" class="form-control" required style="appearance: none; background-color: rgba(15, 23, 42, 0.6); color: white; cursor: pointer;">
+                            <option value="" disabled selected>Select City...</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Blood Group</label>
+                    <select name="blood_group" class="form-control" required style="appearance: none; background-color: rgba(15, 23, 42, 0.6); color: white;">
+                        <option value="" disabled selected>Select...</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                    </select>
+                </div>
+
+                <div class="divider">Previous Vaccinations</div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 15px;">Check the vaccines you have already received.</p>
+                
+                <div class="checkbox-grid" style="margin-bottom: 30px;">
+                    {% for v in all_vaccines %}
+                    <label class="checkbox-card">
+                        <input type="checkbox" name="vaccines" value="{{ v }}">
+                        <span style="font-size: 14px;">{{ v }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 16px; font-size: 18px;">Create My Health Passport</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const cityMap = {
+        "Tamil Nadu": ["Chennai", "Coimbatore", "Madurai", "Tiruchirappalli", "Salem"],
+        "Karnataka": ["Bengaluru", "Mysuru", "Hubballi", "Mangaluru", "Belagavi"],
+        "Andhra Pradesh": ["Visakhapatnam", "Vijayawada", "Guntur", "Nellore", "Kurnool"],
+        "Telangana": ["Hyderabad", "Warangal", "Nizamabad", "Karimnagar", "Khammam"],
+        "Kerala": ["Thiruvananthapuram", "Kochi", "Kozhikode", "Thrissur", "Kannur"]
+    };
+
+    function populateCities() {
+        const state = document.getElementById('stateSelect').value;
+        const citySelect = document.getElementById('citySelect');
+        citySelect.innerHTML = '<option value="" disabled selected>Select City...</option>';
+        if (cityMap[state]) {
+            cityMap[state].forEach(city => {
+                const opt = document.createElement('option');
+                opt.value = city;
+                opt.innerHTML = city;
+                citySelect.appendChild(opt);
+            });
+        }
+    }
+
+    // Dismiss flash messages after 5 seconds
+    setTimeout(() => {
+        document.querySelectorAll('.alert').forEach(alert => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateX(100px)';
+            alert.style.transition = 'all 0.4s';
+            setTimeout(() => alert.remove(), 400);
+        });
+    }, 5000);
+</script>
+</body>
+</html>
