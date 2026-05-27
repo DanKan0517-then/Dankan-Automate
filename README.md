@@ -195,18 +195,7 @@ app_logs.txt
 
 ---
 
-## Future Improvements
+##PAGE LOOK
 
-- SMS reminders
-- Better UI
-- Admin dashboard
-- Cloud database support
-- Hospital integration
+<img width="633" height="828" alt="Screenshot 2026-05-27 at 10 49 20 AM" src="https://github.com/user-attachments/assets/6cd85d76-5f42-41f5-86b4-3865457743f2" />
 
----
-
-## Author
-
-Danushkanth
-
-Computer Science Engineering Student interested in AI, automation, and software development.
